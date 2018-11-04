@@ -27,3 +27,4 @@ Route::group([ 'middleware' => 'api', 'prefix' => '/v1' ], function ($router) {
     Route::get('test', 'CompaniesController@test');
 
 }); 
+ 

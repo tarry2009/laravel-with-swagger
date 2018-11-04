@@ -10,13 +10,29 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
-
-/**
+ 
+ /**
  * @SWG\Swagger(
- *   @SWG\Info(
- *     title="My first swagger documented API",
- *     version="1.0.0"
- *   )
+ *     basePath="/api/",
+ *     schemes={"https", "http"},
+ *     host="one.nhtsa.gov",
+ *     @SWG\Info(
+ *         version="1.0.0",
+ *         title="L5 Swagger API",
+ *         description="L5 Swagger API description",
+ *         @SWG\Contact(
+ *             email="darius@matulionis.lt"
+ *         ),
+ *     )
+ * )
+ */
+/**
+ * @SWG\SecurityScheme(
+ *   securityDefinition="passport",
+ *   type="oauth2",
+ *   tokenUrl="/oauth/token",
+ *   flow="password",
+ *   scopes={}
  * )
  */
 class UsersController extends Controller {
@@ -27,6 +43,123 @@ class UsersController extends Controller {
             'error' => $errors,
         ], Response::HTTP_BAD_REQUEST);
     }
+    
+     /**
+ * @SWG\Get(
+ *      path="/webapi/SafetyRatings/modelyear/",
+ *      operationId="getvehicles",
+ *      tags={"Vehicles"},
+ *      summary="Get list of vehicles",
+ *      description="Returns list of vehicles",
+ *      @SWG\Response(
+ *          response=200,
+ *          description="successful operation"
+ *       ),
+ *       @SWG\Response(response=400, description="Bad request"),
+ *       security={
+ *           {"api_key_security_example": {}}
+ *       }
+ *     )
+ *
+ * Returns list of vehicles
+ */
+ 	public function vehicles(Request $request){
+		   
+        
+		$newarray = $nhtsa = array();
+		
+		if (empty($request->model))
+			return $this->respond(array('Error'=>'Model name required'),400); 
+			
+		if (empty($request->manufacturer))
+			return $this->respond(array('Error'=>'Manufacturer name required'),400); 
+		 
+		if (!empty($request->modelYear) && is_numeric($request->modelYear)){
+ 
+			$url = 'https://one.nhtsa.gov/webapi/api/SafetyRatings/modelyear/'.$request->modelYear.'/make/'.$request->manufacturer.'/model/'.$request->model.'?format=json';
+			$nhtsa = $this->getData($url);
+			
+			
+			$newarray['Count'] = $nhtsa['Count']; 
+			$newarray['Results'] = [];
+			
+			if (!empty($nhtsa['Results'])){
+				foreach ($nhtsa['Results'] as $i=>$vid){ 
+					
+					if($request->withRating=='true' ){ 
+								
+							$crash_rating_url = 'https://one.nhtsa.gov/webapi/api/SafetyRatings/VehicleId/'.$vid['VehicleId'].'?format=json';
+							$crash_rating_data = $this->getData($crash_rating_url );
+							 
+							if (isset($crash_rating_data['Results'][0]['OverallRating'])){ 
+								$newarray['Results'][$i]['CrashRating'] = $crash_rating_data['Results'][0]['OverallRating']; 
+							} 
+								 
+					}
+					$newarray['Results'][$i]['VehicleId'] = $vid['VehicleId'];
+					$newarray['Results'][$i]['Description'] = $vid['VehicleDescription'];
+					
+				}
+			}
+				 
+			 
+			return $this->respond($newarray);
+		} else {
+			return $this->respond(array('Error'=>'Model Year required'),400);
+			 
+		}
+	 
+	}
+    
+    /**
+ * @SWG\Get(
+ *      path="/blx/public/api/v1/projects",
+ *      operationId="getProjectsList",
+ *      tags={"Projects"},
+ *      summary="Get list of projects",
+ *      description="Returns list of projects",
+ *      @SWG\Response(
+ *          response=200,
+ *          description="successful operation"
+ *       ),
+ *       @SWG\Response(response=400, description="Bad request"),
+ *       security={
+ *           {"api_key_security_example": {}}
+ *       }
+ *     )
+ *
+ * Returns list of projects
+ */
+/**
+ * @SWG\Get(
+ *      path="/blx/public/api/v1/projects/{id}",
+ *      operationId="getProjectById",
+ *      tags={"Projects"},
+ *      summary="Get project information",
+ *      description="Returns project data",
+ *      @SWG\Parameter(
+ *          name="id",
+ *          description="Project id",
+ *          required=true,
+ *          type="integer",
+ *          in="path"
+ *      ),
+ *      @SWG\Response(
+ *          response=200,
+ *          description="successful operation"
+ *       ),
+ *      @SWG\Response(response=400, description="Bad request"),
+ *      @SWG\Response(response=404, description="Resource Not Found"),
+ *      security={
+ *         {
+ *             "oauth2_security_example": {"write:projects", "read:projects"}
+ *         }
+ *     },
+ * )
+ *
+ */
+ 
+ 
  /**
      * Check the login credentials and get the access token
      * @return \Illuminate\Http\Response

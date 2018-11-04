@@ -80,3 +80,27 @@ Before run the app, run unit test command from project folder.
 ./vendor/bin/phpunit
 ```
 If tests are running perfectly without error then your project is ready.
+
+# Requirement 1
+Visit the following Requirement 1 URLs and get meaningful JSON output from them:
+
+GET http://localhost/vehicles/2015/Audi/A3
+
+GET http://localhost/vehicles/2015/Toyota/Yaris
+
+GET http://localhost/vehicles/2015/Ford/Crown Victoria
+
+GET http://localhost/vehicles/undefined/Ford/Fusion
+
+# Requirement 2
+Application endpoint:
+
+POST http://localhost/vehicles/
+
+//It will not work if you put all the files in vehicles directory
+
+//if you want workable http://localhost/vehicles with post 
+
+// you have to move all project files into your www or htdocs folder
+
+POST http://localhost/vehicles
